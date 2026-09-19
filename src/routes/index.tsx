@@ -1,24 +1,68 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { invitationData as d } from "@/data/invitation";
+import { EnvelopeHero } from "@/components/invite/Envelope";
+import {
+  StorySection,
+  DetailsSection,
+  CountdownSection,
+  PhotoStorySection,
+  TraditionsSection,
+  RegistrySection,
+  RsvpSection,
+  ClosingSection,
+} from "@/components/invite/Sections";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+const title = `${d.babyName} Baby Shower · ${d.parents}`;
+const description = `${d.messages.heroTitle}. Join ${d.parents} on ${d.date.full} at ${d.venue.name}, ${d.venue.city}.`;
+
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  const [opened, setOpened] = useState(false);
+  const storyRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    document.body.style.overflow = opened ? "" : "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [opened]);
+
+  const handleOpened = () => {
+    setOpened(true);
+    window.setTimeout(() => storyRef.current?.scrollIntoView({ behavior: "smooth" }), 250);
+  };
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main className="relative overflow-x-clip">
+      <EnvelopeHero onOpened={handleOpened} />
+      <div
+        ref={storyRef}
+        className={`transition-opacity duration-[1400ms] ease-out ${opened ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        aria-hidden={!opened}
+      >
+        <StorySection />
+        <DetailsSection />
+        <CountdownSection />
+        <PhotoStorySection />
+        <TraditionsSection />
+        <RegistrySection />
+        <RsvpSection />
+        <ClosingSection />
+      </div>
+    </main>
   );
 }
